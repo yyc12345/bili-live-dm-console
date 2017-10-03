@@ -22,3 +22,7 @@ dotnet run -- ROOM_INDEX
 
 ROOM-INDEX is your bilibili live room's index. It must be a number.  
 Press tab can block output danmaku and then press enter to continue outputing danmaku and blocked danmaku will be outputed immediately.  
+
+## Screenshot
+Debian 9.1/KDE  
+![](example.png)
