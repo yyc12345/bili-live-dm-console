@@ -166,13 +166,14 @@ namespace bili_live_dm_console.BiliDMLib
                     var typeId = BitConverter.ToInt32(stableBuffer, 0);
                     typeId = IPAddress.NetworkToHostOrder(typeId);
 
-                    //Console.WriteLine(typeId);
+                    if (debuglog)
+                        ConsoleAssistance.WriteLine("[debug] typeId:" + typeId, ConsoleColor.Red);
+                    
                     NetStream.ReadB(stableBuffer, 0, 4);//magic, params?
                     var playloadlength = packetlength - 16;
                     if (playloadlength == 0)
                     {
                         continue;//没有内容了
-
                     }
                     typeId = typeId - 1;//和反编译的代码对应 
                     var buffer = new byte[playloadlength];
@@ -183,7 +184,9 @@ namespace bili_live_dm_console.BiliDMLib
                         case 1:
                         case 2:
                             var viewer = BitConverter.ToUInt32(buffer.Take(4).Reverse().ToArray(), 0); //观众人数
-                            //Console.WriteLine(viewer);
+                            if (debuglog)
+                                ConsoleAssistance.WriteLine("[debug] viewer:" + viewer, ConsoleColor.Red);
+                            
                             if (ReceivedRoomCount != null)
                             {
                                 ReceivedRoomCount(this, new ReceivedRoomCountArgs() { UserCount = viewer });
@@ -194,10 +197,8 @@ namespace bili_live_dm_console.BiliDMLib
                         case 4://playerCommand
                             var json = Encoding.UTF8.GetString(buffer, 0, playloadlength);
                             if (debuglog)
-                            {
-                                //Console.WriteLine(json);
+                                ConsoleAssistance.WriteLine("[debug] json:" + json, ConsoleColor.Red);
 
-                            }
                             try
                             {
                                 DanmakuModel dama = new DanmakuModel(json, 2);
@@ -218,8 +219,7 @@ namespace bili_live_dm_console.BiliDMLib
                         case 7:
                         case 16:
                         default:
-                            break;
-                            //                     
+                            break;                  
                     }
                 }
             }
@@ -347,8 +347,9 @@ namespace bili_live_dm_console.BiliDMLib
         }
 
 
-        public DanmakuLoader()
+        public DanmakuLoader(bool isDebug)
         {
+            this.debuglog = isDebug;
         }
 
 
