@@ -163,6 +163,7 @@ namespace bili_live_dm_console
                         break;
                     case "dc":
                     case "disconnect":
+                        var isRemoved = false;
                         foreach (var item in liveRoomList)
                         {
                             if (item.URLID == result[1])
@@ -171,10 +172,12 @@ namespace bili_live_dm_console
                                 liveRoomList.Remove(item);
                                 dmRecord.Record("Remove [" + result[1] + "] from list");
                                 ConsoleAssistance.WriteLine("已移除直播间", ConsoleColor.Magenta);
+                                isRemoved = true;
                                 break;
                             }
                         }
-                        ConsoleAssistance.WriteLine("没有匹配的直播间可以移除", ConsoleColor.Magenta);
+                        if (!isRemoved)
+                            ConsoleAssistance.WriteLine("没有匹配的直播间可以移除", ConsoleColor.Magenta);
                         break;
                     case "exit":
                         foreach (var item in liveRoomList)
