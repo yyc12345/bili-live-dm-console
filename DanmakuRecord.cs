@@ -32,7 +32,12 @@ namespace bili_live_dm_console
         public void Record(string str)
         {
             if (isRecord)
-                sw.WriteLine(str);
+                sw.WriteLineAsync(str);
+        }
+
+        public void Close(){
+            sw.Close();
+            sw.Dispose();
         }
     }
 }

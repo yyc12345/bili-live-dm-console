@@ -17,6 +17,8 @@ namespace bili_live_dm_console.BiliDMLib
 {
     public class DanmakuLoader
     {
+        public string UrlID;
+
         private string[] defaulthosts = new string[] { "livecmt-2.bilibili.com", "livecmt-1.bilibili.com" };
         private string ChatHost = "chat.bilibili.com";
         // private int ChatPort = 788;
@@ -37,12 +39,12 @@ namespace bili_live_dm_console.BiliDMLib
         private static string lastserver;
         //        private object shit_lock=new object();//ReceiveMessageLoop 似乎好像大概會同時運行兩個的bug, 但是不修了, 鎖上算了
 
-        public async Task<bool> ConnectAsync(int roomId)
+        public async Task<bool> ConnectAsync(int roomID)
         {
             try
             {
                 if (this.Connected) throw new InvalidOperationException();
-                int channelId = roomId;
+                int channelId = roomID;
                 //
                 //                var request = WebRequest.Create(RoomInfoUrl + roomId + ".json");
                 //                var response = request.GetResponse();
@@ -126,7 +128,7 @@ namespace bili_live_dm_console.BiliDMLib
                     thread.IsBackground = true;
                     thread.Start();
                     lastserver = ChatHost;
-                    lastroomid = roomId;
+                    lastroomid = roomID;
                     return true;
                 }
                 return false;
@@ -167,8 +169,8 @@ namespace bili_live_dm_console.BiliDMLib
                     typeId = IPAddress.NetworkToHostOrder(typeId);
 
                     if (debuglog)
-                        ConsoleAssistance.WriteLine("[debug] typeId:" + typeId, ConsoleColor.Red);
-                    
+                        ConsoleAssistance.WriteLine("[" + UrlID + @"][debug] typeId:" + typeId, ConsoleColor.Red);
+
                     NetStream.ReadB(stableBuffer, 0, 4);//magic, params?
                     var playloadlength = packetlength - 16;
                     if (playloadlength == 0)
@@ -185,8 +187,8 @@ namespace bili_live_dm_console.BiliDMLib
                         case 2:
                             var viewer = BitConverter.ToUInt32(buffer.Take(4).Reverse().ToArray(), 0); //观众人数
                             if (debuglog)
-                                ConsoleAssistance.WriteLine("[debug] viewer:" + viewer, ConsoleColor.Red);
-                            
+                                ConsoleAssistance.WriteLine("[" + UrlID + @"][debug] viewer:" + viewer, ConsoleColor.Red);
+
                             if (ReceivedRoomCount != null)
                             {
                                 ReceivedRoomCount(this, new ReceivedRoomCountArgs() { UserCount = viewer });
@@ -197,7 +199,7 @@ namespace bili_live_dm_console.BiliDMLib
                         case 4://playerCommand
                             var json = Encoding.UTF8.GetString(buffer, 0, playloadlength);
                             if (debuglog)
-                                ConsoleAssistance.WriteLine("[debug] json:" + json, ConsoleColor.Red);
+                                ConsoleAssistance.WriteLine("[" + UrlID + @"][debug] json:" + json, ConsoleColor.Red);
 
                             try
                             {
@@ -219,7 +221,7 @@ namespace bili_live_dm_console.BiliDMLib
                         case 7:
                         case 16:
                         default:
-                            break;                  
+                            break;
                     }
                 }
             }
