@@ -35,9 +35,13 @@ namespace bili_live_dm_console
                 sw.WriteLineAsync(str);
         }
 
-        public void Close(){
-            sw.Close();
-            sw.Dispose();
+        public void Close()
+        {
+            if (isRecord)
+            {
+                sw.Close();
+                sw.Dispose();
+            }
         }
     }
 }
