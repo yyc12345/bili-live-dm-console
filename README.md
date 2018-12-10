@@ -2,6 +2,7 @@
 A cross-platform bilibili live danmaku console receiver.  
 
 Inspired and getting some core code from [copyliu/bililive_dm](https://github.com/copyliu/bililive_dm)
+True Room id detector's code is come from [zyzsdy/biliroku](https://github.com/zyzsdy/biliroku)
 
 ## Install
 ### Windows

@@ -9,6 +9,9 @@ Desktop.ini
 #Linux
 .directory
 
+Properties
+.vscode
+
 ## ------------------------Visual Studio normal settings---------------------------------------
 
 # User-specific files

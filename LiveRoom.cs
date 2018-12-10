@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using bili_live_dm_console.BiliDMLib;
 using bili_live_dm_console.BilibiliDM_PluginFramework;
 
@@ -121,42 +122,45 @@ namespace bili_live_dm_console
 
         private int getActualRoomID(string urlID)
         {
-            WebClient wc = new WebClient();
-            wc.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
-            Byte[] pageData = wc.DownloadData(@"http://live.bilibili.com/" + urlID); //从指定网站下载数据
-            //string pageHtml = Encoding.Default.GetString(pageData);  //如果获取网站页面采用的是GB2312，则使用这句            
-            string pageHtml = Encoding.UTF8.GetString(pageData); //如果获取网站页面采用的是UTF-8，则使用这句
+
+            var roomWebPageUrl = "https://api.live.bilibili.com/room/v1/Room/room_init?id=" + urlID;
+            var wc = new WebClient();
+            wc.Headers.Add("Accept: text/html");
+            wc.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36");
+            wc.Headers.Add("Accept-Language: zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4");
+
+            //发送HTTP请求获取真实房间号
+            string pageHtml;
+            bool result = true;
+            int id = 0;
+
+            try {
+                pageHtml = wc.DownloadString(roomWebPageUrl);
+                var jsonResult = JObject.Parse(pageHtml);
+                id = int.Parse(jsonResult["data"]["room_id"].ToString());
+            } catch (Exception e) {
+                id = 0;
+                result = false;
+            }
+
+            //WebClient wc = new WebClient();
+            //wc.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
+            //Byte[] pageData = wc.DownloadData(@"https://live.bilibili.com/" + urlID); //从指定网站下载数据
+            ////string pageHtml = Encoding.Default.GetString(pageData);  //如果获取网站页面采用的是GB2312，则使用这句            
+            //string pageHtml = Encoding.UTF8.GetString(pageData); //如果获取网站页面采用的是UTF-8，则使用这句
 
             //get actual room id
-            var result = Regex.Match(pageHtml, @"var ROOMID = \d+;");
-            if (!result.Success)
-            {
+            if (!result) {
                 ConsoleAssistance.WriteLine("获取真实Room ID失败，将使用URL ID作为连接参数", ConsoleColor.Red);
-                var ex = int.TryParse(urlID, out int rs);
-                if (ex == false)
-                {
+                var ex = int.TryParse(urlID, out id);
+                if (ex == false) {
                     Console.WriteLine("ID非法");
                     //Environment.Exit(1);
                     //stay
                 }
-                return rs;
             }
 
-            //process string
-            var cache = result.Value.Replace("var ROOMID = ", "");
-            cache = cache.Replace(";", "");
-            var ex2 = int.TryParse(cache, out int rs2);
-            if (ex2 == false)
-            {
-                Console.WriteLine("ID非法");
-                //Environment.Exit(1);
-                //stay
-            }
-            if (isDebug)
-                ConsoleAssistance.WriteLine("[debug] get actual room id successfully. url id：" + urlID +
-                 " room id:" + rs2, ConsoleColor.Red);
-            return rs2;
-
+            return id;
         }
 
         #endregion
