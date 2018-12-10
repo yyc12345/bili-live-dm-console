@@ -1,8 +1,11 @@
 # bili-live-dm-console
-A cross-platform bilibili live danmaku console receiver.  
+A cross-platform bilibili live danmaku console receiver.
+
+## Code reference
 
 Inspired and getting some core code from [copyliu/bililive_dm](https://github.com/copyliu/bililive_dm)
-True Room id detector's code is come from [zyzsdy/biliroku](https://github.com/zyzsdy/biliroku)
+
+Real Room ID detector's code is come from [zyzsdy/biliroku](https://github.com/zyzsdy/biliroku)
 
 ## Install
 ### Windows
@@ -67,3 +70,7 @@ Except some special situation. Using this command to exit is the best way.
 ## Screenshot
 Debian 9.1/KDE  
 ![](example.png)
+
+Windows 10 \(Version 1803\)  
+![](example-win.png)
+
