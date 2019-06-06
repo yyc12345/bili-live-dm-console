@@ -10,12 +10,9 @@ using Newtonsoft.Json.Linq;
 using bili_live_dm_console.BiliDMLib;
 using bili_live_dm_console.BilibiliDM_PluginFramework;
 
-namespace bili_live_dm_console
-{
-    public class LiveRoom
-    {
-        public LiveRoom(string id, bool isDebug, bool isActualRoomID)
-        {
+namespace bili_live_dm_console {
+    public class LiveRoom {
+        public LiveRoom(string id, bool isDebug, bool isActualRoomID) {
             main = new DanmakuLoader(isDebug);
             main.UrlID = id;
             this.URLID = id;
@@ -43,53 +40,51 @@ namespace bili_live_dm_console
         bool isActualRoomId;
         int actualRoomID;
         uint userCount = 0;
-        uint UserCount
-        {
+        uint UserCount {
             get { return userCount; }
             set { userCount = value; }
         }
-        public string VisualUserCount
-        {
-            get
-            {
+        public string VisualUserCount {
+            get {
                 return "直播间人数：" + userCount.ToString();
             }
         }
 
-        public void Disconnect()
-        {
+        public void Disconnect() {
             main.Disconnect();
         }
 
         #region connect and get actual room id
 
-        private void firstConnect(string urlID)
-        {
-            Task.Run(() =>
-            {
+        private void firstConnect(string urlID) {
+            Task.Run(() => {
                 //init actual room id
                 if (!isActualRoomId) actualRoomID = getActualRoomID(urlID);
+                else {
+                    try {
+                        actualRoomID = int.Parse(urlID);
+                    } catch {
+                        actualRoomID = 0;
+                    }
+                }
 
                 //connect
                 connectToRoom();
             });
         }
 
-        private async void connectToRoom()
-        {
-            if (actualRoomID > 0)
-            {
+        private async void connectToRoom() {
+            if (actualRoomID > 0) {
                 var connectresult = false;
                 var trytime = 0;
 
-                while (!connectresult)
-                {
+                while (!connectresult) {
                     if (trytime > 5)
                         break;
                     else
                         trytime++;
 
-                    System.Threading.Thread.Sleep(1000);// 稍等一下
+                    await Task.Delay(1000);// 稍等一下
                     ConsoleAssistance.WriteLine("[" + URLID + @"]正在连接");
                     connectresult = await main.ConnectAsync(actualRoomID);
 
@@ -100,19 +95,14 @@ namespace bili_live_dm_console
                 }
 
 
-                if (connectresult)
-                {
+                if (connectresult) {
                     ConsoleAssistance.WriteLine("[" + URLID + @"]弹幕机连接成功!", ConsoleColor.Yellow);
-                }
-                else
-                {
+                } else {
                     ConsoleAssistance.WriteLine("[" + URLID + @"]连接失败", ConsoleColor.Red);
                     //Environment.Exit(1);
                     //stay
                 }
-            }
-            else
-            {
+            } else {
                 ConsoleAssistance.WriteLine("[" + URLID + @"]ID非法", ConsoleColor.Red);
                 //Environment.Exit(1);
                 //stay
@@ -120,10 +110,9 @@ namespace bili_live_dm_console
 
         }
 
-        private int getActualRoomID(string urlID)
-        {
+        private int getActualRoomID(string urlID) {
 
-            var roomWebPageUrl = "https://api.live.bilibili.com/room/v1/Room/room_init?id=" + urlID;
+            var roomWebPageUrl = "https://api.live.bilibili.com/room/v1/Room/get_info?id=" + urlID;
             var wc = new WebClient();
             wc.Headers.Add("Accept: text/html");
             wc.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36");
@@ -168,36 +157,29 @@ namespace bili_live_dm_console
 
         #region event processor
 
-        private void func_Disconnected(object sender, DisconnectEvtArgs e)
-        {
+        private void func_Disconnected(object sender, DisconnectEvtArgs e) {
             ConsoleAssistance.WriteLine("[" + URLID + @"]连接被意外断开！正在准备自动重连", ConsoleColor.Yellow);
             connectToRoom();
         }
 
-        private void func_LogMessage(object sender, LogMessageArgs e)
-        {
+        private void func_LogMessage(object sender, LogMessageArgs e) {
             ConsoleAssistance.WriteLine("[" + URLID + @"][log]" + e.message, ConsoleColor.Yellow);
         }
-        private void func_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e)
-        {
+        private void func_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e) {
             ProcDanmaku(e.Danmaku);
         }
-        private void func_ReceivedRoomCount(object sender, ReceivedRoomCountArgs e)
-        {
+        private void func_ReceivedRoomCount(object sender, ReceivedRoomCountArgs e) {
             UserCount = e.UserCount;
         }
 
         #endregion
 
-        private void send_danmaku(string str)
-        {
+        private void send_danmaku(string str) {
             OnNewMessage(new NewDanmakuEventArgs(int.Parse(this.URLID), "[" + URLID + "]" + str));
         }
 
-        private void ProcDanmaku(DanmakuModel danmakuModel)
-        {
-            switch (danmakuModel.MsgType)
-            {
+        private void ProcDanmaku(DanmakuModel danmakuModel) {
+            switch (danmakuModel.MsgType) {
                 case MsgTypeEnum.Comment:
                     send_danmaku("收到弹幕:" + (danmakuModel.isAdmin ? "[管]" : "") + (danmakuModel.isVIP ? "[爷]" : "") +
                             danmakuModel.UserName + " 說: " + danmakuModel.CommentText);
@@ -217,8 +199,7 @@ namespace bili_live_dm_console
                     break;
                 case MsgTypeEnum.WelcomeGuard:
                     string guard_text = string.Empty;
-                    switch (danmakuModel.UserGuardLevel)
-                    {
+                    switch (danmakuModel.UserGuardLevel) {
                         case 1:
                             guard_text = "总督";
                             break;
@@ -241,10 +222,8 @@ namespace bili_live_dm_console
 
     }
 
-    public class NewDanmakuEventArgs : EventArgs
-    {
-        public NewDanmakuEventArgs(int roomID, string msg)
-        {
+    public class NewDanmakuEventArgs : EventArgs {
+        public NewDanmakuEventArgs(int roomID, string msg) {
             RoomID = roomID;
             Msg = msg;
         }

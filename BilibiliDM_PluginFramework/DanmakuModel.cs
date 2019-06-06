@@ -70,7 +70,7 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
         /// <summary>
         /// 彈幕用戶
         /// </summary>
-        [Obsolete("请使用 UserName")]
+        [Obsolete("请使用 UserName", true)]
         public string CommentUser
         {
             get { return UserName; }
@@ -115,7 +115,7 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
         /// <summary>
         /// 禮物用戶
         /// </summary>
-        [Obsolete("请使用 UserName")]
+        [Obsolete("请使用 UserName", true)]
         public string GiftUser
         {
             get { return UserName; }
@@ -130,7 +130,7 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
         /// <summary>
         /// 禮物數量
         /// </summary>
-        [Obsolete("请使用 GiftCount")]
+        [Obsolete("请使用 GiftCount", true)]
         public string GiftNum { get { return GiftCount.ToString(); } }
 
         /// <summary>
@@ -184,6 +184,7 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
         /// <summary>
         /// 原始数据, 高级开发用
         /// </summary>
+        /// [Obsolete("除非确实有需要, 请使用 RawDataJToken 避免多次解析JSON导致性能问题")]
         public string RawData { get; set; }
 
         /// <summary>
@@ -191,13 +192,20 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
         /// </summary>
         public int JSON_Version { get; set; }
 
+        /// <summary>
+        /// 原始数据, 高级开发用, 如果需要用原始的JSON数据, 建议使用这个而不是用RawData
+        /// </summary>
+        public JToken RawDataJToken { get; set; }
+
         public DanmakuModel()
         {
         }
 
         public DanmakuModel(string JSON, int version = 1)
         {
+#pragma warning disable CS0618 // 类型或成员已过时
             RawData = JSON;
+#pragma warning restore CS0618 // 类型或成员已过时
             JSON_Version = version;
             switch(version)
             {
@@ -208,12 +216,13 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
                         CommentText = obj[1].ToString();
                         UserName = obj[2][1].ToString();
                         MsgType = MsgTypeEnum.Comment;
+                        RawDataJToken = obj;
                         break;
                     }
                 case 2:
                     {
                         var obj = JObject.Parse(JSON);
-
+                        RawDataJToken = obj;
                         string cmd = obj["cmd"].ToString();
                         switch(cmd)
                         {
@@ -292,6 +301,18 @@ namespace bili_live_dm_console.BilibiliDM_PluginFramework
                                     MsgType = MsgTypeEnum.Unknown;
                                     break;
                                 }
+                        }
+
+                        if (cmd.StartsWith("DANMU_MSG")) // "高考"fix
+{
+                            MsgType = MsgTypeEnum.Comment;
+                            CommentText = obj["info"][1].ToString();
+                            UserID = obj["info"][2][0].ToObject<int>();
+                            UserName = obj["info"][2][1].ToString();
+                            isAdmin = obj["info"][2][2].ToString() == "1";
+                            isVIP = obj["info"][2][3].ToString() == "1";
+                            UserGuardLevel = obj["info"][7].ToObject<int>();
+                            break;
                         }
 
                         break;
